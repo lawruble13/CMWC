@@ -4,13 +4,15 @@
 #include "CMWC_Instance.h"
 
 Scheduler ts;
+CMWC_Instance g_cmwc_inst1;
+//CMWC_Instance g_cmwc_inst2;
 
 void setup() {
-  // put your setup code here, to run once:
-
+  ts.init();
+  g_cmwc_inst1.init();
+  
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  
 }

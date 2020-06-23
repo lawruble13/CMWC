@@ -24,7 +24,8 @@ class CMWC_Instance {
   int m_devConPin;
   int m_senARdPin;
 
-  int m_senLastRead;
+  bool m_senEnabled;
+  bool m_valEnabled;
 
   public:
   CMWC_Instance(int p_senPowPin_n=7, int p_valPowPin=11, int p_devConPin=10, int p_senArdPin=A0);
@@ -36,7 +37,8 @@ class CMWC_Instance {
 
   void enableValve();
   void disableValve();
-  
+
+  bool isConnected();
 }
 
 #endif // CMWC_INSTANCE_H
