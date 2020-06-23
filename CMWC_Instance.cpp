@@ -1,13 +1,14 @@
-#include <TaskScheduler.h>
-#include "CMWC_Instance.h"
+#include <Arduino.h>
+#include "CMWC_Instance.hpp"
 
-public CMWC_Instance::CMWC_Instance(int p_senPowPin_n=7, int p_valPowPin=11, int p_devConPin=10, int p_senArdPin=A0){
+CMWC_Instance::CMWC_Instance(int p_senPowPin_n, int p_valPowPin, int p_devConPin, int p_senARdPin){
   m_senPowPin_n = p_senPowPin_n;
   m_valPowPin   = p_valPowPin;
   m_devConPin   = p_devConPin;
   m_senARdPin   = p_senARdPin;
 }
-public void CMWC_Instance::init(){
+
+void CMWC_Instance::init(){
   pinMode(m_senPowPin_n, OUTPUT);
   digitalWrite(m_senPowPin_n, HIGH);
   m_senEnabled = false;
@@ -20,31 +21,31 @@ public void CMWC_Instance::init(){
   pinMode(m_senARdPin, INPUT);
 }
 
-public int CMWC_Instance::getWaterLevel(){
+int CMWC_Instance::getWaterLevel(){
   if(m_senEnabled){
     return analogRead(m_senARdPin);
   } else {
     return -1;
   }
 }
-public void CMWC_Instance::enableSensor(){
+void CMWC_Instance::enableSensor(){
   digitalWrite(m_senPowPin_n, LOW);
   m_senEnabled = true;
 }
-public void CMWC_Instance::disableSensor(){
+void CMWC_Instance::disableSensor(){
   digitalWrite(m_senPowPin_n, HIGH);
   m_senEnabled = false;
 }
 
-public void CMWC_Instance::enableValve(){
+void CMWC_Instance::enableValve(){
   digitalWrite(m_valPowPin, HIGH);
   m_valEnabled = true;
 }
-public void CMWC_Instance::disableValve(){
+void CMWC_Instance::disableValve(){
   digitalWrite(m_valPowPin, LOW);
   m_valEnabled = false;
 }
 
-public bool CMWC_Instance::isConnected(){
+bool CMWC_Instance::isConnected(){
   return (digitalRead(m_devConPin) == LOW);
 }
