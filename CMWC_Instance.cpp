@@ -2,6 +2,10 @@
 #include "CMWC_Instance.hpp"
 
 CMWC_Instance::CMWC_Instance(int p_senPowPin_n, int p_valPowPin, int p_devConPin, int p_senARdPin){
+  setPins(p_senPowPin_n, p_valPowPin, p_devConPin, p_senARdPin);
+}
+
+void CMWC_Instance::setPins(int p_senPowPin_n, int p_valPowPin, int p_devConPin, int p_senARdPin){
   m_senPowPin_n = p_senPowPin_n;
   m_valPowPin   = p_valPowPin;
   m_devConPin   = p_devConPin;
@@ -48,4 +52,11 @@ void CMWC_Instance::disableValve(){
 
 bool CMWC_Instance::isConnected(){
   return (digitalRead(m_devConPin) == LOW);
+}
+
+bool CMWC_Instance::isSensorEnabled(){
+  return m_senEnabled;
+}
+bool CMWC_Instance::isValveEnabled(){
+  return m_valEnabled;
 }

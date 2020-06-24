@@ -1,9 +1,23 @@
 #include <TaskSchedulerDeclarations.h>
+#include <Arduino.h>
 
 #ifndef CMWC_INSTANCE_H
 #define CMWC_INSTANCE_H
 
-#define mytest (1*TASK_SECOND)
+#if DEBUG
+#define CMWC_WAITING_CHECK_INTERVAL (1*TASK_SECOND)
+#define CMWC_WAITING_CONSEC_EMPTY 5
+#define CMWC_FILLING_CHECK_INTERVAL (100*TASK_MILLISECOND)
+#define CMWC_FILLING_TIMEOUT (1*TASK_MINUTE)
+#else
+#define CMWC_WAITING_CHECK_INTERVAL (1*TASK_MINUTE)
+#define CMWC_WAITING_CONSEC_EMPTY 10
+#define CMWC_FILLING_CHECK_INTERVAL (100*TASK_MILLISECOND)
+#define CMWC_FILLING_TIMEOUT (1*TASK_MINUTE)
+#endif
+
+#define CMWC_DELAY_CHECK (10*TASK_MILLISECOND)
+#define CMWC_DETECT_LEVEL 100
 
 class CMWC_Instance {
   private:
@@ -16,7 +30,8 @@ class CMWC_Instance {
   bool m_valEnabled;
 
   public:
-  CMWC_Instance(int p_senPowPin_n, int p_valPowPin, int p_devConPin, int p_senARdPin);
+  CMWC_Instance(int p_senPowPin_n=7, int p_valPowPin=11, int p_devConPin=10, int p_senARdPin=A0);
+  void setPins(int p_senPowPin_n=7, int p_valPowPin=11, int p_devConPin=10, int p_senARdPin=A0);
   void init();
 
   int getWaterLevel();
@@ -27,6 +42,10 @@ class CMWC_Instance {
   void disableValve();
 
   bool isConnected();
+  bool isSensorEnabled();
+  bool isValveEnabled();
 };
+
+enum CMWC_Status { WAITING, FILLING };
 
 #endif // CMWC_INSTANCE_H
