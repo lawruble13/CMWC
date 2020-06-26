@@ -1,21 +1,32 @@
-#define DEBUG 1
+#define DEBUG 0
 #define TESTING 0
+#define VERBOSE 0
 
 #if DEBUG || TEST
-#define _PP(a) Serial.print(a);
-#define _PL(a) Serial.println(a);
+#define _PP(a) Serial.print(a)
+#define _PL(a) Serial.println(a)
+#if VERBOSE
+#define _PPV(a) Serial.print(a)
+#define _PLV(a) Serial.println(a)
+#else
+#define _PPV(a)
+#define _PLV(a)
+#endif
 #else
 #define _PP(a) 
 #define _PL(a) 
+#define _PPV(a)
+#define _PLV(a)
 #endif
 
 #include "CMWC_Instance.hpp"
 #include <Arduino.h>
 
+#define STARTUP_DELAY (10*TASK_MILLISECOND)
+
 Scheduler ts;
 #define N_INSTANCES 2
 CMWC_Instance instances[N_INSTANCES];
-CMWC_Status status = WAITING;
 char currentlyFilling = -1;
 bool timedOut[N_INSTANCES] = {false};
 
@@ -30,7 +41,7 @@ bool startFilling();
 void whileFilling();
 void endFilling();
 
-Task waitingTask(CMWC_WAITING_CHECK_INTERVAL, TASK_FOREVER, &whileWaiting, &ts, true, &startWaiting, &endWaiting);
+Task waitingTask(CMWC_WAITING_CHECK_INTERVAL, TASK_FOREVER, &whileWaiting, &ts, false, &startWaiting, &endWaiting);
 Task fillingTask(CMWC_FILLING_CHECK_INTERVAL, CMWC_FILLING_TIMEOUT / CMWC_FILLING_CHECK_INTERVAL, &whileFilling, &ts, false, &startFilling, &endFilling);
 Task waitingCheckLevelTask(TASK_IMMEDIATE, N_INSTANCES, &checkWaterLevelWaiting, &ts, false);
 
@@ -52,6 +63,7 @@ void loop() {
   static bool init = false;
   if(!init){
     _PL("Starting CMWC Version 0.1");
+    waitingTask.enableDelayed(STARTUP_DELAY);
     init = true;
   }
   ts.execute();
@@ -65,11 +77,11 @@ bool startWaiting(){
 
 void whileWaiting(){
   for(int i = 0; i < N_INSTANCES; i++){
-    if(instances[i].isConnected())
+    if(instances[i].isConnected() && !timedOut[i])
       instances[i].enableSensor();
   }
   waitingCheckLevelTask.restartDelayed(CMWC_DELAY_CHECK);
-  _PL("Enabled all sensors, checking values after delay.");
+  _PLV("Enabled all sensors, checking values after delay.");
 }
 
 void endWaiting(){
@@ -84,19 +96,19 @@ void endWaiting(){
 void checkWaterLevelWaiting(){
   static char currentlyChecking = -1;
   currentlyChecking = (currentlyChecking+1) % N_INSTANCES;
-  _PP("Checking level of instance");
-  _PL(String(currentlyChecking));
+  _PPV("Checking level of instance");
+  _PLV(String(currentlyChecking));
   if(timedOut[currentlyChecking]){
-    _PL("This instance timed out. Continuing.");
+    _PLV("This instance timed out. Continuing.");
     return;
   }
   if(!instances[currentlyChecking].isConnected()){
-    _PL("This instance isn't connected. Continuing.");
+    _PLV("This instance isn't connected. Continuing.");
     return;
   }
   if(instances[currentlyChecking].getWaterLevel() < CMWC_DETECT_LEVEL){
-    _PP("Measured empty. Consecutive empties: ");
-    _PL(String(consecutiveEmpty[currentlyChecking]+1));
+    _PPV("Measured empty. Consecutive empties: ");
+    _PLV(String(consecutiveEmpty[currentlyChecking]+1));
     if(++consecutiveEmpty[currentlyChecking] >= CMWC_WAITING_CONSEC_EMPTY){
       currentlyFilling = currentlyChecking;
       waitingTask.disable();
@@ -107,7 +119,7 @@ void checkWaterLevelWaiting(){
       instances[currentlyChecking].disableSensor();
     }
   } else {
-    _PL("Measured not empty");
+    _PLV("Measured not empty");
     consecutiveEmpty[currentlyChecking] = 0;
     instances[currentlyChecking].disableSensor();
   }
@@ -122,8 +134,8 @@ bool startFilling(){
 
 void whileFilling(){
   int level = instances[currentlyFilling].getWaterLevel();
-  _PP("Measured level while filling: ");
-  _PL(level);
+  _PPV("Measured level while filling: ");
+  _PLV(level);
   if(level > CMWC_DETECT_LEVEL){
     fillingTask.disable();
     waitingTask.enable();
@@ -134,6 +146,7 @@ void endFilling(){
   if(fillingTask.getIterations() == 0){
     timedOut[currentlyFilling] = true;
     _PL("Fill timed out.");
+    waitingTask.enable();
   }
   instances[currentlyFilling].disableValve();
   instances[currentlyFilling].disableSensor();

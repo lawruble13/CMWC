@@ -11,13 +11,13 @@
 #define CMWC_FILLING_TIMEOUT (1*TASK_MINUTE)
 #else
 #define CMWC_WAITING_CHECK_INTERVAL (1*TASK_MINUTE)
-#define CMWC_WAITING_CONSEC_EMPTY 10
+#define CMWC_WAITING_CONSEC_EMPTY 20
 #define CMWC_FILLING_CHECK_INTERVAL (100*TASK_MILLISECOND)
-#define CMWC_FILLING_TIMEOUT (1*TASK_MINUTE)
+#define CMWC_FILLING_TIMEOUT (3.5*TASK_MINUTE)
 #endif
 
 #define CMWC_DELAY_CHECK (10*TASK_MILLISECOND)
-#define CMWC_DETECT_LEVEL 100
+#define CMWC_DETECT_LEVEL 200
 
 class CMWC_Instance {
   private:
@@ -45,7 +45,5 @@ class CMWC_Instance {
   bool isSensorEnabled();
   bool isValveEnabled();
 };
-
-enum CMWC_Status { WAITING, FILLING };
 
 #endif // CMWC_INSTANCE_H
